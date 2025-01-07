@@ -17,9 +17,33 @@ func main() {
 	root := "/home/basilbarge"
 	fileSystem := os.DirFS(root)
 
+	AddDir(fileSystem, "testDir")
+
 	config := GetConfig(fileSystem)
 
 	fmt.Println(config.Dirs)
+}
+
+func AddDir(filesystem fs.FS, pathToAdd string) {
+	config := GetConfig(filesystem)
+
+	fmt.Println(config.Dirs)
+
+	config.Dirs = append(config.Dirs, pathToAdd)
+
+	fmt.Println(config.Dirs)
+
+	marshaledConfig, err := json.Marshal(config)
+
+	if err != nil {
+		fmt.Printf("There was an error marshaling new config to json. %s\n", err)
+	}
+
+	err = os.WriteFile("/home/basilbarge/Documents/Projects/tmux-sessions/config.json", marshaledConfig, 0770)
+
+	if err != nil {
+		fmt.Printf("There was an error writing the new config. %s\n", err)
+	}
 }
 
 func GetConfig(fileSystem fs.FS) Config {
