@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
-	"syscall"
-	"unsafe"
+	"github.com/zellijsessions/utils"
 )
 
 type Config struct {
@@ -22,7 +20,7 @@ func main() {
 	root := "/home/basilbarge"
 	fileSystem := os.DirFS(root)
 	config := GetConfig(fileSystem)
-	
+
 	findArgs := config.Dirs
 	findArgs = append(findArgs, "-type", "d", "-maxdepth", "1")
 
@@ -48,28 +46,10 @@ func main() {
 
 	chosenDir := strings.TrimSpace(dirBuilder.String())
 
-	if err := os.Chdir(chosenDir); err != nil {
-		fmt.Printf("Could not go to directory %s. %s\n", chosenDir, err)
-	}
 
-	zellijCmdString := fmt.Sprintf("zellij --session %s\n", filepath.Base(chosenDir))
+	utils.RunShellCommand("cd", []string{chosenDir})
 
-    zellijCmdBytes, err := syscall.ByteSliceFromString(zellijCmdString)
-    if err != nil {
-        log.Fatalln(err)
-    }
-
-    var eno syscall.Errno
-    for _, c := range zellijCmdBytes {
-        _, _, eno = syscall.Syscall(syscall.SYS_IOCTL,
-			0,
-            syscall.TIOCSTI,
-            uintptr(unsafe.Pointer(&c)),
-        )
-        if eno != 0 {
-            log.Fatalln(eno)
-        }
-    }
+	utils.RunShellCommand("zellij", []string{"--session", filepath.Base(chosenDir)})
 }
 
 func RemoveDir(filesystem fs.FS, pathToRemove string) {
@@ -135,7 +115,7 @@ func AddDir(filesystem fs.FS, pathToAdd string) {
 func GetConfig(fileSystem fs.FS) Config {
 	var paths Config
 
-	data, err := fs.ReadFile(fileSystem, "Documents/Projects/tmux-sessions/config.json")
+	data, err := fs.ReadFile(fileSystem, "Documents/Projects/zellij-sessions/config.json")
 
 	if err != nil {
 		fmt.Printf("There was an error reading the configuration file. %s\n", err)
