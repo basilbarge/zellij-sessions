@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -28,4 +29,20 @@ func RunShellCommand(command string, args []string) {
 			log.Fatalln(eno)
 		}
 	}
+}
+
+func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) (strings.Builder) {
+
+	cmd := exec.Command(cmdString, cmdArgs...)
+
+	cmd.Stdin = &stdinData
+
+	var stdOutBuilder strings.Builder
+	cmd.Stdout = &stdOutBuilder
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("There was a problem running command %s. %s\n", cmd.Path, err)
+	}
+
+	return stdOutBuilder
 }

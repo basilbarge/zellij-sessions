@@ -3,58 +3,37 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zellijsessions/utils"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
-	"github.com/zellijsessions/utils"
 )
 
 type Config struct {
 	Dirs []string `json:"dirs"`
 }
 
-func main() {
-	root := "/home/basilbarge"
-	fileSystem := os.DirFS(root)
-	config := GetConfig(fileSystem)
+func newConfig(fileSystem fs.FS, configPath string) *Config {
+	var paths *Config
 
-	findArgs := config.Dirs
-	findArgs = append(findArgs, "-type", "d", "-maxdepth", "1")
+	data, err := fs.ReadFile(fileSystem, configPath)
 
-	find := exec.Command("find", findArgs...)
-
-	var findResult strings.Builder
-	find.Stdout = &findResult
-
-	if err := find.Run(); err != nil {
-		fmt.Printf("There was a problem running command %s. %s\n", find.Path, err)
+	if err != nil {
+		fmt.Printf("There was an error reading the configuration file. %s\n", err)
 	}
 
-	fzf := exec.Command("fzf")
+	err = json.Unmarshal(data, &paths)
 
-	fzf.Stdin = strings.NewReader(findResult.String())
-
-	var dirBuilder strings.Builder
-	fzf.Stdout = &dirBuilder
-
-	if err := fzf.Run(); err != nil {
-		fmt.Printf("There was a problem running command %s. %s\n", fzf.Path, err)
+	if err != nil {
+		fmt.Printf("There was an error unmarshalling json. %s\n", err)
 	}
 
-	chosenDir := strings.TrimSpace(dirBuilder.String())
-
-
-	utils.RunShellCommand("cd", []string{chosenDir})
-
-	utils.RunShellCommand("zellij", []string{"--session", filepath.Base(chosenDir)})
+	return paths
 }
 
-func RemoveDir(filesystem fs.FS, pathToRemove string) {
-	config := GetConfig(filesystem)
-
+func (config *Config) RemoveDir(filesystem fs.FS, pathToRemove string) {
 	if !slices.Contains(config.Dirs, pathToRemove) {
 		fmt.Println(fmt.Errorf("The current configuration does not contain %s as a directory so it cannot be removed", pathToRemove))
 		return
@@ -70,8 +49,6 @@ func RemoveDir(filesystem fs.FS, pathToRemove string) {
 
 	config.Dirs = append(config.Dirs[:idxToRemove], config.Dirs[idxToRemove+1:]...)
 
-	fmt.Println(config.Dirs)
-
 	marshaledConfig, err := json.MarshalIndent(config, "", "	")
 
 	if err != nil {
@@ -85,7 +62,7 @@ func RemoveDir(filesystem fs.FS, pathToRemove string) {
 	}
 }
 
-func AddDir(filesystem fs.FS, pathToAdd string) {
+func (config *Config) AddDir(filesystem fs.FS, pathToAdd string) {
 	if _, err := os.Stat(pathToAdd); err != nil {
 
 		if os.IsNotExist(err) {
@@ -94,8 +71,6 @@ func AddDir(filesystem fs.FS, pathToAdd string) {
 			fmt.Printf("An error occured when searching for the directory to add. %s\n", err)
 		}
 	}
-
-	config := GetConfig(filesystem)
 
 	config.Dirs = append(config.Dirs, pathToAdd)
 
@@ -112,20 +87,34 @@ func AddDir(filesystem fs.FS, pathToAdd string) {
 	}
 }
 
-func GetConfig(fileSystem fs.FS) Config {
-	var paths Config
+type ZellijSession struct {
+	Config     *Config
+	Filesystem fs.FS
+}
 
-	data, err := fs.ReadFile(fileSystem, "Documents/Projects/zellij-sessions/config.json")
-
-	if err != nil {
-		fmt.Printf("There was an error reading the configuration file. %s\n", err)
+func newZellijSession(filesystem fs.FS) *ZellijSession {
+	return &ZellijSession{
+		Config:     newConfig(filesystem, "Documents/Projects/zellij-sessions/config.json"),
+		Filesystem: filesystem,
 	}
+}
 
-	err = json.Unmarshal(data, &paths)
+func main() {
+	root := "/home/basilbarge"
+	fileSystem := os.DirFS(root)
 
-	if err != nil {
-		fmt.Printf("There was an error unmarshalling json. %s\n", err)
-	}
+	zellijSession := newZellijSession(fileSystem)
 
-	return paths
+	findArgs := append(zellijSession.Config.Dirs, "-type", "d", "-maxdepth", "1")
+
+	var findStdIn strings.Reader
+	findStdOut := utils.ExecCommand("find", findArgs, findStdIn)
+
+	dirBuilder := utils.ExecCommand("fzf", []string{}, *strings.NewReader(findStdOut.String()))
+
+	chosenDir := strings.TrimSpace(dirBuilder.String())
+
+	utils.RunShellCommand("cd", []string{chosenDir})
+
+	utils.RunShellCommand("zellij", []string{"--session", filepath.Base(chosenDir)})
 }
