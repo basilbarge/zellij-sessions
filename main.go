@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
+	"syscall"
+	"unsafe"
 )
 
 type Config struct {
@@ -42,14 +46,30 @@ func main() {
 		fmt.Printf("There was a problem running command %s. %s\n", fzf.Path, err)
 	}
 
-	chosenDir := dirBuilder.String()
+	chosenDir := strings.TrimSpace(dirBuilder.String())
 
 	if err := os.Chdir(chosenDir); err != nil {
 		fmt.Printf("Could not go to directory %s. %s\n", chosenDir, err)
 	}
 
-	//zellij := exec.Command("zellij")
-	fmt.Println(chosenDir)
+	zellijCmdString := fmt.Sprintf("zellij --session %s\n", filepath.Base(chosenDir))
+
+    zellijCmdBytes, err := syscall.ByteSliceFromString(zellijCmdString)
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    var eno syscall.Errno
+    for _, c := range zellijCmdBytes {
+        _, _, eno = syscall.Syscall(syscall.SYS_IOCTL,
+			0,
+            syscall.TIOCSTI,
+            uintptr(unsafe.Pointer(&c)),
+        )
+        if eno != 0 {
+            log.Fatalln(eno)
+        }
+    }
 }
 
 func RemoveDir(filesystem fs.FS, pathToRemove string) {
