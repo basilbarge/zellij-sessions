@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"slices"
+	"github.com/zellijsessions/utils"
 )
 
 type Config struct {
@@ -18,13 +19,13 @@ func NewConfig(fileSystem fs.FS, configPath string) *Config {
 	data, err := fs.ReadFile(fileSystem, configPath)
 
 	if err != nil {
-		fmt.Printf("There was an error reading the configuration file. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error reading the configuration file. %s\n", err))
 	}
 
 	err = json.Unmarshal(data, &paths)
 
 	if err != nil {
-		fmt.Printf("There was an error unmarshalling json. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error unmarshalling json. %s\n", err))
 	}
 
 	return paths
@@ -32,7 +33,7 @@ func NewConfig(fileSystem fs.FS, configPath string) *Config {
 
 func (config *Config) RemoveDir(filesystem fs.FS, pathToRemove string) {
 	if !slices.Contains(config.Dirs, pathToRemove) {
-		fmt.Println(fmt.Errorf("The current configuration does not contain %s as a directory so it cannot be removed", pathToRemove))
+		utils.LogError(fmt.Sprintln(fmt.Errorf("The current configuration does not contain %s as a directory so it cannot be removed", pathToRemove)))
 		return
 	}
 
@@ -49,13 +50,13 @@ func (config *Config) RemoveDir(filesystem fs.FS, pathToRemove string) {
 	marshaledConfig, err := json.MarshalIndent(config, "", "	")
 
 	if err != nil {
-		fmt.Printf("There was an error marshaling new config to json. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error marshaling new config to json. %s\n", err))
 	}
 
 	err = os.WriteFile("/home/basilbarge/Documents/Projects/tmux-sessions/config.json", marshaledConfig, 0770)
 
 	if err != nil {
-		fmt.Printf("There was an error writing the new config. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error writing the new config. %s\n", err))
 	}
 }
 

@@ -31,7 +31,7 @@ func RunShellCommand(command string, args []string) {
 	}
 }
 
-func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) (strings.Builder) {
+func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) strings.Builder {
 
 	cmd := exec.Command(cmdString, cmdArgs...)
 
@@ -41,8 +41,12 @@ func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) (
 	cmd.Stdout = &stdOutBuilder
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("There was a problem running command %s. %s\n", cmd.Path, err)
+		log.Fatal(fmt.Sprintf("There was a problem running command %s. %s\n", cmd.Path, err))
 	}
 
 	return stdOutBuilder
+}
+
+func LogError(errString string) {
+	log.Fatal(errString)
 }
