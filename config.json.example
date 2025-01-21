@@ -1,6 +1,6 @@
 {
 	"dirs": [
-		"~",
-		"~/Documents/Projects",
+		"/home/basilbarge",
+		"/home/basilbarge/Documents/Projects",
 	]
 }
