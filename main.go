@@ -13,7 +13,7 @@ func main() {
 
 	zellijSession := zellijSession.NewZellijSession(fileSystem)
 
-	findArgs := append(zellijSession.Config.Dirs, "-maxdepth", "1", "-type", "d")
+	findArgs := append(zellijSession.Config.Dirs, "-mindepth", "1", "-maxdepth", "1", "-type", "d")
 
 	var findStdIn strings.Reader
 	findStdOut := utils.ExecCommand("find", findArgs, findStdIn)
