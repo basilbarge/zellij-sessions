@@ -43,7 +43,9 @@ func (session *ZellijSession) AttachToSession(sessionName string) {
 		log.Fatal(fmt.Errorf("Can not attach to session %s. Session does not exist", sessionName))
 	}
 
-	utils.ExecCommand("zellij", []string{"attach", strings.TrimSpace(sessionName)}, *strings.NewReader(""))
+	//utils.ExecCommand("zellij", []string{"attach", strings.TrimSpace(sessionName)}, *strings.NewReader(""))
+
+	utils.RunShellCommand("zellij", []string{"attach", sessionName})
 
 }
 
