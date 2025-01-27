@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/zellijsessions/utils"
@@ -42,12 +43,11 @@ func (session *ZellijSession) AttachToSession(sessionName string) {
 		log.Fatal(fmt.Errorf("Can not attach to session %s. Session does not exist", sessionName))
 	}
 
-	utils.ExecCommand("zellij", []string{"attach", sessionName}, *strings.NewReader(""))
+	utils.ExecCommand("zellij", []string{"attach", strings.TrimSpace(sessionName)}, *strings.NewReader(""))
 
 }
 
 func sessionExists(sessionName string) bool {
-	fmt.Println("Connecting to ", sessionName)
 	existingSessions := utils.ExecCommand("zellij", []string{"ls"}, *strings.NewReader(""))
 
 	outputLines := strings.Split(strings.TrimSpace(existingSessions.String()), "\n")
@@ -59,11 +59,17 @@ func sessionExists(sessionName string) bool {
 	}
 
 	for _, existingSessionName := range existingSessionNames {
-		fmt.Println("Comparing ",sessionName, " to ", existingSessionName)
-		if existingSessionName == sessionName {
+		strippedName := strings.TrimSpace(stripAnsiiColorCodes(existingSessionName))
+		if strippedName == sessionName {
 			return true
 		}
 	}
 
 	return false
+}
+
+func stripAnsiiColorCodes(str string) string {
+	ansiiColorCodeRegex := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+	return ansiiColorCodeRegex.ReplaceAllString(str, "")
 }
