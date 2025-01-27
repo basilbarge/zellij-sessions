@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"slices"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -41,6 +42,10 @@ func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) s
 	cmd.Stdout = &stdOutBuilder
 
 	if err := cmd.Run(); err != nil {
+		if (slices.Contains(cmdArgs, "ls")) {
+			return stdOutBuilder
+		}
+
 		log.Fatal(fmt.Sprintf("There was a problem running command %s. %s\n", cmd.Path, err))
 	}
 
