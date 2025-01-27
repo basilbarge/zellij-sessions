@@ -46,7 +46,7 @@ func ExecCommand(cmdString string, cmdArgs []string, stdinData strings.Reader) s
 			return stdOutBuilder
 		}
 
-		log.Fatal(fmt.Sprintf("There was a problem running command %s. %s\n", cmd.Path, err))
+		log.Fatal(fmt.Sprintf("There was a problem running command %s %s. %s\n", cmd.Path, cmd.Args, err))
 	}
 
 	return stdOutBuilder
