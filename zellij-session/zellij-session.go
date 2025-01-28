@@ -35,7 +35,7 @@ func (session *ZellijSession) StartSession(directoryToStartIn string) {
 	utils.RunShellCommand("cd", []string{directoryToStartIn})
 
 	//run the zellij command to start a session with the name of the directory you're in
-	utils.RunShellCommand("zellij", []string{"--session", sessionName})
+	utils.RunShellCommand("zellij", []string{"--new-session-with-layout", "~/Documents/Projects/zellij-sessions/zession-default.kdl", "-s", sessionName})
 }
 
 func (session *ZellijSession) AttachToSession(sessionName string) {
