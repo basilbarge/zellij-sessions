@@ -78,16 +78,9 @@ func main() {
 	fileSystem := os.DirFS(root)
 	zellijSession := zellijSession.NewZellijSession(fileSystem)
 
-	var findDirs []string
-
-	for _, dir := range zellijSession.ProjectDirs {
-		findDirs = append(findDirs, dir.AbsPath)
-	}
-
 	listItems := []list.Item{}
-
-	for _, dirString := range findDirs {
-		listItems = append(listItems, NewDirListItem(dirString, ""))
+	for _, dir := range zellijSession.ProjectDirs {
+		listItems = append(listItems, NewDirListItem(dir.Info.Name(), dir.AbsPath))
 	}
 
 	app := NewApp()
