@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -11,15 +12,31 @@ import (
 	"github.com/zellijsessions/utils"
 )
 
+type ProjectDir struct {
+	Info    fs.DirEntry
+	AbsPath string
+}
+
+func NewProjectDir(dirEntry fs.DirEntry, absPath string) ProjectDir {
+	return ProjectDir{
+		Info:    dirEntry,
+		AbsPath: absPath,
+	}
+}
+
 type ZellijSession struct {
-	Config     *Config
-	Filesystem fs.FS
+	Config      *Config
+	Filesystem  fs.FS
+	ProjectDirs []ProjectDir
 }
 
 func NewZellijSession(filesystem fs.FS) *ZellijSession {
+	sessionConfig := NewConfig(filesystem, "Documents/Projects/zellij-sessions/config.json")
+
 	return &ZellijSession{
-		Config:     NewConfig(filesystem, "Documents/Projects/zellij-sessions/config.json"),
-		Filesystem: filesystem,
+		Config:      sessionConfig,
+		Filesystem:  filesystem,
+		ProjectDirs: getProjectDirs(sessionConfig.Dirs),
 	}
 }
 
@@ -74,4 +91,26 @@ func stripAnsiiColorCodes(str string) string {
 	ansiiColorCodeRegex := regexp.MustCompile(`\x1b\[[0-9;]*m`)
 
 	return ansiiColorCodeRegex.ReplaceAllString(str, "")
+}
+
+func getProjectDirs(dirPaths []string) []ProjectDir {
+	var entries []ProjectDir
+
+	for _, path := range dirPaths {
+		dirEntries, err := os.ReadDir(path)
+
+		if err != nil {
+			utils.LogError(fmt.Sprintf("Could not read directory %s. Failed with err %v", path, err))
+		}
+
+		for _, entry := range dirEntries {
+			if !entry.IsDir() {
+				continue
+			}
+
+			entries = append(entries, NewProjectDir(entry, filepath.Join(path, entry.Name())))
+		}
+	}
+
+	return entries
 }

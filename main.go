@@ -1,27 +1,26 @@
 package main
 
 import (
-	"github.com/zellijsessions/utils"
-	"github.com/zellijsessions/zellij-session"
 	"os"
 	"strings"
+
+	"github.com/zellijsessions/utils"
+	"github.com/zellijsessions/zellij-session"
 )
 
 func main() {
 	root := "/home/basilbarge"
 	fileSystem := os.DirFS(root)
-
 	zellijSession := zellijSession.NewZellijSession(fileSystem)
 
-	var findArgs []string
-	findArgs = append(findArgs, "-L")
-	findArgs = append(findArgs, zellijSession.Config.Dirs...)
-	findArgs = append(findArgs, "-mindepth", "1", "-maxdepth", "1", "-type", "d")
 
-	var findStdIn strings.Reader
-	findStdOut := utils.ExecCommand("find", findArgs, findStdIn)
+	var findDirs []string
 
-	dirBuilder := utils.ExecCommand("fzf", []string{}, *strings.NewReader(findStdOut.String()))
+	for _, dir := range zellijSession.ProjectDirs {
+		findDirs = append(findDirs, dir.AbsPath)
+	}
+
+	dirBuilder := utils.ExecCommand("fzf", []string{}, *strings.NewReader(strings.Join(findDirs, "\n")))
 
 	chosenDir := strings.TrimSpace(dirBuilder.String())
 
