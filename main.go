@@ -37,6 +37,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return a, tea.Quit
 		}
+
+	case tea.WindowSizeMsg:
+		a.dirList.SetHeight(msg.Height)
+		a.dirList.SetWidth(msg.Width)
 	}
 
 	a.dirList, cmd = a.dirList.Update(msg)
