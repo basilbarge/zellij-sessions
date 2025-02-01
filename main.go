@@ -34,6 +34,10 @@ func main() {
 
 	selectedDir := finalApp.(models.App).SelectedDir
 
+	if selectedDir == "" {
+		utils.LogError("You must select a directory")
+	}
+
 	zellijSession.StartSession(selectedDir)
 
 }
