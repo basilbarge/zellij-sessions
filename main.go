@@ -23,7 +23,6 @@ func (a App) View() string {
 }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 
@@ -34,7 +33,20 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return a, tea.Quit
 
 		case "enter":
-			a.selectedDir = a.dirList.SelectedItem().(DirListItem)
+			//if we press enter to apply a filter, ignore the press
+			if a.dirList.FilterState() == list.Filtering {
+				break
+			}
+
+			//otherwise want to store the selected list item
+			//in the application state
+			i, ok := a.dirList.SelectedItem().(DirListItem)
+
+			if ok {
+				//storing description because this is
+				//where I save the full directory path
+				a.selectedDir = i.Description()
+			}
 
 			return a, tea.Quit
 		}
@@ -44,6 +56,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.dirList.SetWidth(msg.Width)
 	}
 
+	var cmd tea.Cmd
 	a.dirList, cmd = a.dirList.Update(msg)
 
 	return a, cmd
