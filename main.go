@@ -2,18 +2,16 @@ package main
 
 import (
 	"fmt"
-
-	"os"
-
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/zellijsessions/utils"
 	"github.com/zellijsessions/zellij-session"
+	"os"
 )
 
 type App struct {
 	dirList     list.Model
-	selectedDir DirListItem
+	selectedDir string
 }
 
 func NewApp() App {
@@ -100,6 +98,6 @@ func main() {
 
 	selectedDir := finalApp.(App).selectedDir
 
-	zellijSession.StartSession(selectedDir.Description())
+	zellijSession.StartSession(selectedDir)
 
 }
