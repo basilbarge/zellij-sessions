@@ -11,11 +11,9 @@ import (
 	"github.com/zellijsessions/zellij-session"
 )
 
-//Integrate bubbletea
-// need model with View, Init, Update functions
-
 type App struct {
-	dirList list.Model
+	dirList     list.Model
+	selectedDir DirListItem
 }
 
 func NewApp() App {
@@ -35,6 +33,11 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 
 		case "ctrl+c", "q":
+			return a, tea.Quit
+
+		case "enter":
+			a.selectedDir = a.dirList.SelectedItem().(DirListItem)
+
 			return a, tea.Quit
 		}
 
@@ -89,14 +92,14 @@ func main() {
 
 	p := tea.NewProgram(app)
 
-	if _, err := p.Run(); err != nil {
+	finalApp, err := p.Run()
+
+	if err != nil {
 		utils.LogError(fmt.Sprintf("There was an error running the app, %v", err))
 	}
 
-	//dirBuilder := utils.ExecCommand("fzf", []string{}, *strings.NewReader(findStdOut.String()))
+	selectedDir := finalApp.(App).selectedDir
 
-	//chosenDir := strings.TrimSpace(dirBuilder.String())
-
-	//zellijSession.StartSession(chosenDir)
+	zellijSession.StartSession(selectedDir.Description())
 
 }
