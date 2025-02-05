@@ -53,7 +53,7 @@ func (config *Config) RemoveDir(pathToRemove string) {
 		utils.LogError(fmt.Sprintf("There was an error marshaling new config to json. %s\n", err))
 	}
 
-	err = os.WriteFile("/home/basilbarge/Documents/Projects/tmux-sessions/config.json", marshaledConfig, 0770)
+	err = os.WriteFile("/home/basilbarge/Documents/Projects/zellij-sessions/config.json", marshaledConfig, 0770)
 
 	if err != nil {
 		utils.LogError(fmt.Sprintf("There was an error writing the new config. %s\n", err))
@@ -78,7 +78,7 @@ func (config *Config) AddDir(pathToAdd string) {
 		fmt.Printf("There was an error marshaling new config to json. %s\n", err)
 	}
 
-	err = os.WriteFile("/home/basilbarge/Documents/Projects/tmux-sessions/config.json", marshaledConfig, 0770)
+	err = os.WriteFile("/home/basilbarge/Documents/Projects/zellij-sessions/config.json", marshaledConfig, 0770)
 
 	if err != nil {
 		fmt.Printf("There was an error writing the new config. %s\n", err)
