@@ -64,9 +64,9 @@ func (config *Config) AddDir(pathToAdd string) {
 	if _, err := os.Stat(pathToAdd); err != nil {
 
 		if os.IsNotExist(err) {
-			fmt.Println("The directory you want to add does not exist on your machine. Check your spelling or try a different one!")
+			utils.LogError("The directory you want to add does not exist on your machine. Check your spelling or try a different one!")
 		} else {
-			fmt.Printf("An error occured when searching for the directory to add. %s\n", err)
+			utils.LogError(fmt.Sprintf("An error occured when searching for the directory to add. %s\n", err))
 		}
 	}
 
@@ -75,12 +75,12 @@ func (config *Config) AddDir(pathToAdd string) {
 	marshaledConfig, err := json.MarshalIndent(config, "", "	")
 
 	if err != nil {
-		fmt.Printf("There was an error marshaling new config to json. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error marshaling new config to json. %s\n", err))
 	}
 
 	err = os.WriteFile("/home/basilbarge/Documents/Projects/zellij-sessions/config.json", marshaledConfig, 0770)
 
 	if err != nil {
-		fmt.Printf("There was an error writing the new config. %s\n", err)
+		utils.LogError(fmt.Sprintf("There was an error writing the new config. %s\n", err))
 	}
 }
