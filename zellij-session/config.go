@@ -31,7 +31,7 @@ func NewConfig(fileSystem fs.FS, configPath string) *Config {
 	return paths
 }
 
-func (config *Config) RemoveDir(filesystem fs.FS, pathToRemove string) {
+func (config *Config) RemoveDir(pathToRemove string) {
 	if !slices.Contains(config.Dirs, pathToRemove) {
 		utils.LogError(fmt.Sprintln(fmt.Errorf("The current configuration does not contain %s as a directory so it cannot be removed", pathToRemove)))
 		return
@@ -60,7 +60,7 @@ func (config *Config) RemoveDir(filesystem fs.FS, pathToRemove string) {
 	}
 }
 
-func (config *Config) AddDir(filesystem fs.FS, pathToAdd string) {
+func (config *Config) AddDir(pathToAdd string) {
 	if _, err := os.Stat(pathToAdd); err != nil {
 
 		if os.IsNotExist(err) {
