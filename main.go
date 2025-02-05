@@ -19,6 +19,10 @@ type ConfigArgs struct {
 }
 
 func main() {
+	root := "/home/basilbarge"
+	fileSystem := os.DirFS(root)
+	zellijSession := zellijSession.NewZellijSession(fileSystem)
+
 	var args struct {
 		Config *ConfigArgs `arg:"subcommand:config"`
 	}
@@ -31,18 +35,16 @@ func main() {
 			parser.FailSubcommand("expected add or remove", "config")
 		}
 
-		if args.Config.Add == "" {
-			fmt.Println("No add")
+		if args.Config.Add != "" {
+			zellijSession.Config.AddDir(args.Config.Add)
+			os.Exit(0)
 		}
 
-		if args.Config.Remove == "" {
-			fmt.Println("No remove")
+		if args.Config.Remove != "" {
+			zellijSession.Config.RemoveDir(args.Config.Remove)
+			os.Exit(0)
 		}
 	}
-
-	root := "/home/basilbarge"
-	fileSystem := os.DirFS(root)
-	zellijSession := zellijSession.NewZellijSession(fileSystem)
 
 	listItems := []list.Item{}
 	for _, dir := range zellijSession.ProjectDirs {
