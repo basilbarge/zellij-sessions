@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"slices"
+	"strings"
+
 	"github.com/zellijsessions/utils"
 )
 
@@ -32,6 +34,11 @@ func NewConfig(fileSystem fs.FS, configPath string) *Config {
 }
 
 func (config *Config) RemoveDir(pathToRemove string) {
+	if (strings.Contains(pathToRemove, "~")) {
+		pathToRemove = parseTildeInPath(pathToRemove)
+	}
+
+
 	if !slices.Contains(config.Dirs, pathToRemove) {
 		utils.LogError(fmt.Sprintln(fmt.Errorf("The current configuration does not contain %s as a directory so it cannot be removed", pathToRemove)))
 		return
@@ -61,6 +68,10 @@ func (config *Config) RemoveDir(pathToRemove string) {
 }
 
 func (config *Config) AddDir(pathToAdd string) {
+	if (strings.Contains(pathToAdd, "~")) {
+		pathToAdd = parseTildeInPath(pathToAdd)
+	}
+
 	if _, err := os.Stat(pathToAdd); err != nil {
 
 		if os.IsNotExist(err) {
@@ -83,4 +94,14 @@ func (config *Config) AddDir(pathToAdd string) {
 	if err != nil {
 		utils.LogError(fmt.Sprintf("There was an error writing the new config. %s\n", err))
 	}
+}
+
+func parseTildeInPath(path string) string {
+	homeDir, err := os.UserHomeDir()
+
+	if err != nil {
+		utils.LogError(fmt.Sprintf("There was an error getting the user's home directory: %v", err))
+	}
+
+	return strings.Replace(path, "~", homeDir, 1)
 }
